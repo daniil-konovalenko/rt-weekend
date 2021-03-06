@@ -8,6 +8,7 @@ pub struct Vec3 {
     pub z: f64,
 }
 
+use std::iter::Sum;
 pub use Vec3 as Point;
 
 impl Vec3 {
@@ -124,5 +125,15 @@ impl ops::Mul<f64> for Vec3 {
     #[inline]
     fn mul(self, rhs: f64) -> Self::Output {
         Vec3::new(self.x * rhs, self.y * rhs, self.z * rhs)
+    }
+}
+
+impl Sum for Vec3 {
+    fn sum<I: Iterator<Item = Vec3>>(iter: I) -> Self {
+        let mut result = Vec3::zero();
+        for vec in iter {
+            result += vec;
+        }
+        result
     }
 }
