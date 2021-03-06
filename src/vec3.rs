@@ -30,6 +30,10 @@ impl Vec3 {
         Vec3::new(random(), random(), random())
     }
 
+    pub fn random_unit() -> Self {
+        Self::random_in_unit_sphere().unit_vector()
+    }
+
     #[inline]
     pub fn random_range(min: f64, max: f64) -> Self {
         let mut rng = rand::thread_rng();
