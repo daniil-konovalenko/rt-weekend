@@ -8,6 +8,7 @@ use std::io::Write;
 use crate::camera::Camera;
 use rand::random;
 use std::f64::INFINITY;
+use std::time::Instant;
 
 mod camera;
 mod color;
@@ -42,12 +43,10 @@ fn main() {
         Box::new(Sphere::new(Point::new(0.0, -100.5, -1.0), 100.0)),
     ];
 
-    // Camera
-
     let camera = Camera::new();
 
     // Render
-
+    let start = Instant::now();
     println!("P3\n{} {}\n{}", image_width, image_height, max_color);
 
     for y in (0..image_height).rev() {
@@ -71,4 +70,6 @@ fn main() {
                 .expect("failed to write color");
         }
     }
+    let duration = start.elapsed();
+    eprintln!("Elapsed time: {:?}", duration)
 }
