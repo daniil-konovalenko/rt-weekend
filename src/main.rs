@@ -1,40 +1,27 @@
 use crate::color::Color;
+use crate::hittable::{Hittable, HittableList};
 use crate::ray::Ray;
+use crate::sphere::Sphere;
 use crate::vec3::{Point, Vec3};
 use std::io::Write;
 
+use std::f64::INFINITY;
+
 mod color;
+mod hittable;
 mod ray;
+mod sphere;
 mod vec3;
 
-fn ray_color(ray: &Ray) -> Color {
-    let t = hits_sphere(&Point::new(0.0, 0.0, -1.0), 0.5, *ray);
-
-    if t > 0.0 {
-        let normal = (ray.at(t) - Vec3::new(0.0, 0.0, -1.0)).unit_vector();
-        return Color::new(normal.x + 1.0, normal.y + 1.0, normal.z + 1.0) * 0.5;
+fn ray_color(ray: &Ray, world: &HittableList) -> Color {
+    if let Some(hit_record) = world.hit(ray, 0.0, INFINITY) {
+        return (hit_record.normal() + Color::new(1.0, 1.0, 1.0)) * 0.5;
     }
 
     let unit_direction = ray.direction.unit_vector();
     let t = 0.5 * (unit_direction.y + 1.0);
 
     Color::new(1.0, 1.0, 1.0) * (1.0 - t) + Color::new(0.5, 0.7, 1.0) * t
-}
-
-fn hits_sphere(center: &Point, radius: f64, ray: Ray) -> f64 {
-    let oc = ray.origin - *center;
-
-    let a = ray.direction.length_squared();
-    let half_b = oc.dot(&ray.direction);
-    let c = oc.length_squared() - radius * radius;
-
-    let discriminant = half_b * half_b - a * c;
-
-    if discriminant < 0.0 {
-        -1.0
-    } else {
-        (-half_b - discriminant.sqrt()) / a
-    }
 }
 
 fn main() {
@@ -44,6 +31,12 @@ fn main() {
     let image_height = (image_width as f64 / aspect_ratio) as i64;
 
     let max_color = 255;
+
+    // World
+    let world: HittableList = vec![
+        Box::new(Sphere::new(Point::new(0.0, 0.0, -1.0), 0.5)),
+        Box::new(Sphere::new(Point::new(0.0, -100.5, -1.0), 100.0)),
+    ];
 
     // Camera
     let viewport_height = 2.0;
@@ -73,7 +66,7 @@ fn main() {
                 lower_left_corner + horizontal * u + vertical * v - origin,
             );
 
-            let pixel_color = ray_color(&ray);
+            let pixel_color = ray_color(&ray, &world);
 
             color::write_color(&mut std::io::stdout(), &pixel_color)
                 .expect("failed to write color");
