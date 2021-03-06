@@ -2,11 +2,11 @@ use crate::color::Color;
 use crate::hittable::{Hittable, HittableList};
 use crate::ray::Ray;
 use crate::sphere::Sphere;
-use crate::vec3::Point;
+use crate::vec3::{Point, Vec3};
 use std::io::Write;
 
 use crate::camera::Camera;
-use rand::random;
+use rand::{random, Rng};
 use std::f64::INFINITY;
 use std::time::Instant;
 
@@ -17,8 +17,19 @@ mod ray;
 mod sphere;
 mod vec3;
 
-fn ray_color(ray: &Ray, world: &HittableList) -> Color {
+fn ray_color(ray: &Ray, world: &HittableList, depth: i32) -> Color {
+    if depth <= 0 {
+        return Color::zero();
+    }
+
     if let Some(hit_record) = world.hit(ray, 0.0, INFINITY) {
+        let target = hit_record.point + hit_record.normal() + Vec3::random_in_unit_sphere();
+        return ray_color(
+            &Ray::new(hit_record.point, target - hit_record.point),
+            world,
+            depth - 1,
+        ) * 0.5;
+
         return (hit_record.normal() + Color::new(1.0, 1.0, 1.0)) * 0.5;
     }
 
@@ -34,6 +45,7 @@ fn main() {
     let image_width = 400;
     let image_height = (image_width as f64 / aspect_ratio) as i64;
     let samples_per_pixel = 100;
+    let max_depth = 50;
 
     let max_color = 255;
 
@@ -49,6 +61,8 @@ fn main() {
     let start = Instant::now();
     println!("P3\n{} {}\n{}", image_width, image_height, max_color);
 
+    let mut rng = rand::thread_rng();
+
     for y in (0..image_height).rev() {
         eprintln!("\rScanlines remaining: {}", y);
         std::io::stdout().flush().expect("failed to flush output");
@@ -57,12 +71,12 @@ fn main() {
             let pixel_color = (0..samples_per_pixel)
                 .into_iter()
                 .map(|_| {
-                    let u = (x as f64 + random::<f64>()) / (image_width - 1) as f64;
-                    let v = (y as f64 + random::<f64>()) / (image_height - 1) as f64;
+                    let u = (x as f64 + rng.gen::<f64>()) / (image_width - 1) as f64;
+                    let v = (y as f64 + rng.gen::<f64>()) / (image_height - 1) as f64;
 
                     let ray = camera.get_ray(u, v);
 
-                    ray_color(&ray, &world)
+                    ray_color(&ray, &world, max_depth)
                 })
                 .sum();
 

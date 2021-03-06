@@ -8,6 +8,7 @@ pub struct Vec3 {
     pub z: f64,
 }
 
+use rand::{random, Rng};
 use std::iter::Sum;
 pub use Vec3 as Point;
 
@@ -22,6 +23,30 @@ impl Vec3 {
 
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Vec3 { x, y, z }
+    }
+
+    #[inline]
+    pub fn random() -> Self {
+        Vec3::new(random(), random(), random())
+    }
+
+    #[inline]
+    pub fn random_range(min: f64, max: f64) -> Self {
+        let mut rng = rand::thread_rng();
+        Vec3::new(
+            rng.gen_range(min..max),
+            rng.gen_range(min..max),
+            rng.gen_range(min..max),
+        )
+    }
+
+    pub fn random_in_unit_sphere() -> Self {
+        loop {
+            let vec = Self::random_range(-1.0, 1.0);
+            if vec.length_squared() < 1.0 {
+                return vec;
+            }
+        }
     }
 
     pub fn length_squared(&self) -> f64 {
