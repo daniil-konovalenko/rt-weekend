@@ -22,15 +22,13 @@ fn ray_color(ray: &Ray, world: &HittableList, depth: i32) -> Color {
         return Color::zero();
     }
 
-    if let Some(hit_record) = world.hit(ray, 0.0, INFINITY) {
+    if let Some(hit_record) = world.hit(ray, 0.001, INFINITY) {
         let target = hit_record.point + hit_record.normal() + Vec3::random_in_unit_sphere();
         return ray_color(
             &Ray::new(hit_record.point, target - hit_record.point),
             world,
             depth - 1,
         ) * 0.5;
-
-        return (hit_record.normal() + Color::new(1.0, 1.0, 1.0)) * 0.5;
     }
 
     let unit_direction = ray.direction.unit_vector();
