@@ -6,13 +6,16 @@ use crate::vec3::{Point, Vec3};
 use std::io::Write;
 
 use crate::camera::Camera;
+use crate::material::Lambertian;
 use rand::{random, Rng};
 use std::f64::INFINITY;
+use std::rc::Rc;
 use std::time::Instant;
 
 mod camera;
 mod color;
 mod hittable;
+mod material;
 mod ray;
 mod sphere;
 mod vec3;
@@ -23,12 +26,9 @@ fn ray_color(ray: &Ray, world: &HittableList, depth: i32) -> Color {
     }
 
     if let Some(hit_record) = world.hit(ray, 0.001, INFINITY) {
-        let target = hit_record.point + hit_record.normal() + Vec3::random_unit();
-        return ray_color(
-            &Ray::new(hit_record.point, target - hit_record.point),
-            world,
-            depth - 1,
-        ) * 0.5;
+        if let Some((scattered_ray, attenuation)) = hit_record.material.scatter(ray, &hit_record) {
+            return ray_color(&scattered_ray, world, depth - 1) * 0.5;
+        }
     }
 
     let unit_direction = ray.direction.unit_vector();
@@ -48,9 +48,22 @@ fn main() {
     let max_color = 255;
 
     // World
+
+    let sphere_material = Rc::new(Lambertian {
+        albedo: Color::new(0.5, 0.5, 0.5),
+    });
+
     let world: HittableList = vec![
-        Box::new(Sphere::new(Point::new(0.0, 0.0, -1.0), 0.5)),
-        Box::new(Sphere::new(Point::new(0.0, -100.5, -1.0), 100.0)),
+        Box::new(Sphere::new(
+            Point::new(0.0, 0.0, -1.0),
+            0.5,
+            sphere_material.clone(),
+        )),
+        Box::new(Sphere::new(
+            Point::new(0.0, -100.5, -1.0),
+            100.0,
+            sphere_material.clone(),
+        )),
     ];
 
     let camera = Camera::new();

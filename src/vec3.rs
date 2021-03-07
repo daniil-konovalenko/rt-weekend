@@ -75,6 +75,12 @@ impl Vec3 {
     pub fn unit_vector(self) -> Self {
         self / self.length()
     }
+
+    pub fn is_near_zero(&self) -> bool {
+        let eps = 1e-8;
+
+        self.x.abs() < eps && self.y.abs() < eps && self.z.abs() < eps
+    }
 }
 
 impl ops::Neg for Vec3 {
