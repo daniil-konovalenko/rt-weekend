@@ -8,7 +8,7 @@ use std::io::Write;
 use crate::camera::Camera;
 use crate::material::{Dielectric, Lambertian, Metal};
 use rand::{random, Rng};
-use std::f64::INFINITY;
+use std::f64::{consts, INFINITY};
 use std::rc::Rc;
 use std::time::Instant;
 
@@ -51,12 +51,30 @@ fn main() {
 
     let max_color = 255;
 
-    // World
-
-    let blue_metal = Rc::new(Metal::new(Color::new(0.1, 0.5, 0.9), 0.0));
+    // Materials
     let glass = Rc::new(Dielectric {
         refraction_index: 1.5,
     });
+    let blue_metal = Rc::new(Metal::new(Color::new(0.1, 0.5, 0.9), 0.0));
+    let matte_red = Rc::new(Lambertian {
+        albedo: Color::new(1.0, 0.0, 0.0),
+    });
+    let matte_blue = Rc::new(Lambertian {
+        albedo: Color::new(0.0, 0.0, 1.0),
+    });
+
+    // World
+    let r = (consts::PI / 4.0).cos();
+
+    let wide_world: HittableList = vec![
+        Box::new(Sphere::new(
+            Point::new(-r, 0.0, -1.0),
+            r,
+            matte_blue.clone(),
+        )),
+        Box::new(Sphere::new(Point::new(r, 0.0, -1.0), r, matte_red.clone())),
+    ];
+
     let material_ground = Rc::new(Lambertian {
         albedo: Color::new(0.8, 0.8, 0.0),
     });
@@ -90,7 +108,14 @@ fn main() {
         )),
     ];
 
-    let camera = Camera::new();
+    // Look from above
+    let camera = Camera::new(
+        Point::new(-2.0, 2.0, 1.0),
+        Point::new(0.0, 0.0, -1.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        20.0,
+        aspect_ratio,
+    );
 
     // Render
     let start = Instant::now();

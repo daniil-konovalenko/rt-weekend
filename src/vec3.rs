@@ -67,8 +67,8 @@ impl Vec3 {
     #[inline]
     pub fn cross(&self, rhs: &Self) -> Self {
         let x = self.y * rhs.z - self.z * rhs.y;
-        let y = self.y * rhs.x - self.x * rhs.y;
-        let z = self.x * rhs.y - self.y * rhs.z;
+        let y = self.z * rhs.x - self.x * rhs.z;
+        let z = self.x * rhs.y - self.y * rhs.x;
         Self::new(x, y, z)
     }
     #[inline]
