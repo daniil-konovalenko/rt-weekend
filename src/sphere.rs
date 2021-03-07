@@ -31,13 +31,13 @@ impl Hittable for Sphere {
         let discriminant = half_b * half_b - a * c;
         let sqrtd = discriminant.sqrt();
 
-        let root = (-half_b - sqrtd) / a;
+        let mut root = (-half_b - sqrtd) / a;
 
         let root_fits = |root| root >= t_min && root <= t_max;
 
         // Find the nearest root that lies in the acceptable range
         if !root_fits(root) {
-            let root = (-half_b + sqrtd) / a;
+            root = (-half_b + sqrtd) / a;
             if !root_fits(root) {
                 return None;
             }

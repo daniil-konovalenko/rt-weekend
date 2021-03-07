@@ -1,4 +1,5 @@
 use crate::vec3::{Point, Vec3};
+use std::fmt;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Ray {
@@ -13,5 +14,11 @@ impl Ray {
 
     pub fn at(&self, t: f64) -> Point {
         self.origin + self.direction * t
+    }
+}
+
+impl fmt::Display for Ray {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{};{}", self.origin, self.direction)
     }
 }

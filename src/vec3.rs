@@ -85,6 +85,22 @@ impl Vec3 {
     pub fn reflect(&self, normal: &Self) -> Self {
         *self - *normal * 2.0 * self.dot(normal)
     }
+
+    pub fn refract(&self, normal: &Self, refraction_ratio: f64) -> Self {
+        let r_perpendicular = (*self + (*normal * -self.dot(normal))) * refraction_ratio;
+
+        let r_parallel = -*normal * ((1.0 - r_perpendicular.length_squared()).sqrt());
+
+        r_perpendicular + r_parallel
+    }
+
+    pub fn refract_ot(&self, normal: &Self, refraction_ratio: f64) -> Self {
+        let cos_theta = f64::min(normal.dot(&-*self), 1.0);
+
+        let r_perpendicular = (*self + *normal * cos_theta) * refraction_ratio;
+        let r_parallel = *normal * (1.0 - r_perpendicular.length_squared()).abs().sqrt() * -1.0;
+        r_perpendicular + r_parallel
+    }
 }
 
 impl ops::Neg for Vec3 {
