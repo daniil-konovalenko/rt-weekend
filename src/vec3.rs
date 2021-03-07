@@ -81,6 +81,10 @@ impl Vec3 {
 
         self.x.abs() < eps && self.y.abs() < eps && self.z.abs() < eps
     }
+
+    pub fn reflect(&self, normal: &Self) -> Self {
+        *self - *normal * 2.0 * self.dot(normal)
+    }
 }
 
 impl ops::Neg for Vec3 {

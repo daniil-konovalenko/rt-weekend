@@ -1,4 +1,4 @@
-use crate::color::Color;
+use crate::color::{write_color, Color};
 use crate::hittable::{Hittable, HittableList};
 use crate::ray::Ray;
 use crate::sphere::Sphere;
@@ -6,7 +6,7 @@ use crate::vec3::{Point, Vec3};
 use std::io::Write;
 
 use crate::camera::Camera;
-use crate::material::Lambertian;
+use crate::material::{Lambertian, Metal};
 use rand::{random, Rng};
 use std::f64::INFINITY;
 use std::rc::Rc;
@@ -26,9 +26,13 @@ fn ray_color(ray: &Ray, world: &HittableList, depth: i32) -> Color {
     }
 
     if let Some(hit_record) = world.hit(ray, 0.001, INFINITY) {
-        if let Some((scattered_ray, attenuation)) = hit_record.material.scatter(ray, &hit_record) {
-            return ray_color(&scattered_ray, world, depth - 1) * 0.5;
-        }
+        return if let Some((scattered_ray, attenuation)) =
+            hit_record.material.scatter(ray, &hit_record)
+        {
+            ray_color(&scattered_ray, world, depth - 1) * attenuation
+        } else {
+            Color::zero()
+        };
     }
 
     let unit_direction = ray.direction.unit_vector();
@@ -49,20 +53,37 @@ fn main() {
 
     // World
 
-    let sphere_material = Rc::new(Lambertian {
-        albedo: Color::new(0.5, 0.5, 0.5),
+    let blue_metal = Rc::new(Metal::new(Color::new(0.1, 0.5, 0.9), 0.0));
+
+    let material_ground = Rc::new(Lambertian {
+        albedo: Color::new(0.8, 0.8, 0.0),
     });
+    let material_center = Rc::new(Lambertian {
+        albedo: Color::new(0.7, 0.3, 0.3),
+    });
+    let material_left = Rc::new(Metal::new(Color::new(0.8, 0.8, 0.8), 0.3));
+    let material_right = Rc::new(Metal::new(Color::new(0.8, 0.6, 0.2), 1.0));
 
     let world: HittableList = vec![
         Box::new(Sphere::new(
             Point::new(0.0, 0.0, -1.0),
             0.5,
-            sphere_material.clone(),
+            material_center.clone(),
+        )),
+        Box::new(Sphere::new(
+            Point::new(-1.0, 0.0, -1.0),
+            0.5,
+            material_left.clone(),
+        )),
+        Box::new(Sphere::new(
+            Point::new(1.0, 0.0, -1.0),
+            0.5,
+            material_right.clone(),
         )),
         Box::new(Sphere::new(
             Point::new(0.0, -100.5, -1.0),
             100.0,
-            sphere_material.clone(),
+            material_ground.clone(),
         )),
     ];
 
